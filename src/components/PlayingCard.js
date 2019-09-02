@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, View, Animated, PanResponder, StyleSheet } from "react-native";
+import { Text, View, Animated, PanResponder, StyleSheet, Dimensions } from "react-native";
 
 export default class PlayingCard extends Component {
   _animatedValue = new Animated.ValueXY();
@@ -11,6 +11,8 @@ export default class PlayingCard extends Component {
   }
 
   _panResponder = PanResponder.create({
+    onMoveShouldSetResponderCapture: () => true, // ios allows movement
+    onMoveShouldSetPanResponderCapture: () => true, // ios allows dragging
     onStartShouldSetPanResponder: () => true,
     //callback sets the Animated objects dx and dy values
     onPanResponderMove: Animated.event([
@@ -30,6 +32,11 @@ export default class PlayingCard extends Component {
   });
 
   render() {
+    const { height: deviceHeight, width: deviceWidth } = Dimensions.get("window");
+    const interpolatedRotation = this._animatedValue.x.interpolate({
+      inputRange: [0, deviceWidth / 2, deviceWidth],
+      outputRange: ["0deg", "30deg", "-30deg"]
+    });
     return (
       <Animated.View
         style={[
@@ -37,7 +44,8 @@ export default class PlayingCard extends Component {
           {
             transform: [
               { translateX: this._animatedValue.x },
-              { translateY: this._animatedValue.y }
+              { translateY: this._animatedValue.y },
+              { rotate: interpolatedRotation }
             ]
           }
         ]}
