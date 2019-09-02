@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { Text, View, Animated, PanResponder, StyleSheet, Dimensions } from "react-native";
 
+const SWIPE_THRESHOLD = 120;
+
 export default class PlayingCard extends Component {
   _animatedValue = new Animated.ValueXY();
   _coords = { x: 0, y: 0 };
@@ -26,8 +28,28 @@ export default class PlayingCard extends Component {
       this._animatedValue.setValue({ x: 0, y: 0 });
     },
     //updates the coords / offset so its updated on release
-    onPanResponderRelease: () => {
+    onPanResponderRelease: ({ vx, vy }) => {
       this._animatedValue.flattenOffset();
+      let velocity;
+
+      if (vx >= 0) {
+        velocity = clamp(vx, 3, 5);
+      } else if (vx < 0) {
+        velocity = clamp(vx * -1, 3, 5) * -1;
+      }
+
+      if (Math.abs(this._animatedValue) > SWIPE_THRESHOLD) {
+        Animated.decay(this._animatedValue, {
+          velocity: { x: velocity, y: vy },
+          deceleration: 0.98
+          //confirm coords
+        }).start(this._coords);
+      } else {
+        Animated.spring(this._animatedValue, {
+          toValue: { x: 0, y: 0 },
+          friction: 4
+        }).start();
+      }
     }
   });
 
