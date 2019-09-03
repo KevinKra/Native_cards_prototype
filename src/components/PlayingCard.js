@@ -1,17 +1,10 @@
 import React, { Component } from "react";
-import {
-  Text,
-  View,
-  Animated,
-  PanResponder,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity
-} from "react-native";
-
-const CONTAINER_THRESHOLD = 100;
+import { Text, View, Animated, PanResponder, StyleSheet, Dimensions } from "react-native";
 
 export default class PlayingCard extends Component {
+  state = {
+    active: false
+  };
   _animatedValue = new Animated.ValueXY();
   _coords = { x: 0, y: 0 };
 
@@ -30,11 +23,9 @@ export default class PlayingCard extends Component {
     onPanResponderGrant: () => {
       this._animatedValue.setOffset({ x: this._coords.x, y: this._coords.y });
       this._relationalCoords = { x: this._coords.x, y: this._coords.y };
+      this.setState({ active: true });
     },
-    // divide screen total size (from Dimensions) and get a remainder of 40%, the remainder will be where the cards live
-    // get X Y coords of card
-    // if card X or Y, depending, leaves the created dimensions, invoke a certain behavior
-    // if card remains inside range invoke a different behavior
+
     onPanResponderRelease: (evt, { vx, vy, moveY, moveX }) => {
       const { height: deviceHeight, width: deviceWidth } = Dimensions.get("window");
       const validHeight = deviceHeight * (1 / 2);
@@ -44,21 +35,28 @@ export default class PlayingCard extends Component {
       // console.log("release X:", moveX, "release Y:", moveY);
       if (moveY < validHeight || moveX > validWidth) {
         console.log("PLAY CARD");
-        Animated.decay(this._animatedValue, {
-          velocity: { x: vx, y: vy },
-          deceleration: 0.98
-        }).start();
+        Animated.stagger(1000, [
+          Animated.decay(this._animatedValue, {
+            velocity: { x: vx, y: vy },
+            deceleration: 0.98
+          }),
+          Animated.spring(this._animatedValue, {
+            toValue: { x: 50, y: 50 },
+            friction: 4
+          })
+        ]).start();
       } else {
         console.log("HOLD CARD");
         Animated.spring(this._animatedValue, {
           toValue: { x: 0, y: 0 },
-          friction: 4
+          friction: 6
         }).start();
       }
+      this.setState({ active: false });
     }
   });
   render() {
-    const { height: deviceHeight, width: deviceWidth } = Dimensions.get("window");
+    const { width: deviceWidth } = Dimensions.get("window");
 
     const interpolatedRotation = this._animatedValue.x.interpolate({
       inputRange: [0, deviceWidth / 2, deviceWidth],
@@ -68,6 +66,7 @@ export default class PlayingCard extends Component {
       <Animated.View
         style={[
           styles.card,
+          this.state.active ? { zIndex: 2 } : { zIndex: 1 },
           {
             transform: [
               { translateX: this._animatedValue.x },
