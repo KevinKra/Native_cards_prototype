@@ -5,6 +5,7 @@ export default class PlayingCard extends Component {
   state = {
     active: false
   };
+
   _animatedValue = new Animated.ValueXY();
   _coords = { x: 0, y: 0 };
 
@@ -35,13 +36,13 @@ export default class PlayingCard extends Component {
       // console.log("release X:", moveX, "release Y:", moveY);
       if (moveY < validHeight || moveX > validWidth) {
         console.log("PLAY CARD");
-        Animated.stagger(1000, [
+        Animated.stagger(200, [
           Animated.decay(this._animatedValue, {
             velocity: { x: vx, y: vy },
             deceleration: 0.98
           }),
           Animated.spring(this._animatedValue, {
-            toValue: { x: 50, y: 50 },
+            toValue: { x: 0, y: deviceHeight * -(1 / 2) },
             friction: 4
           })
         ]).start();
@@ -77,7 +78,9 @@ export default class PlayingCard extends Component {
           }
         ]}
         {...this._panResponder.panHandlers}
-      ></Animated.View>
+      >
+        <Text style={styles.cardNumber}>{this.props.id}</Text>
+      </Animated.View>
     );
   }
 }
@@ -92,6 +95,12 @@ const styles = StyleSheet.create({
     width: 140,
     margin: 2,
     marginBottom: 4,
-    backgroundColor: "#555"
+    backgroundColor: "#555",
+    justifyContent: "center"
+  },
+  cardNumber: {
+    color: "white",
+    alignSelf: "center",
+    fontSize: 18
   }
 });
