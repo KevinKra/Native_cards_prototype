@@ -1,11 +1,12 @@
 import React, { Component } from "react";
-import { Text, View, Dimensions, StyleSheet } from "react-native";
+import { View, Dimensions, StyleSheet } from "react-native";
 import PlayingCard from "./PlayingCard";
 
 export default class CurrentHandZone extends Component {
   state = {
     height: 0,
     width: 0,
+    playerDeck: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
     playedCards: []
   };
 
@@ -16,7 +17,6 @@ export default class CurrentHandZone extends Component {
 
   playCard = id => {
     const previousPlayedCards = this.state.playedCards.slice();
-    console.log(this.state.playedCards);
     this.setState({ playedCards: [...previousPlayedCards, id] });
   };
 
@@ -32,10 +32,9 @@ export default class CurrentHandZone extends Component {
       <View
         style={[styles.handZone, { height: this.state.height, width: this.state.width }]}
       >
-        <PlayingCard id="1" playCard={this.playCard} />
-        <PlayingCard id="2" playCard={this.playCard} />
-        <PlayingCard id="3" playCard={this.playCard} />
-        <PlayingCard id="4" playCard={this.playCard} />
+        {this.state.playerDeck.map(card => {
+          return <PlayingCard key={card.id} id={card.id} playCard={this.playCard} />;
+        })}
       </View>
     );
   }

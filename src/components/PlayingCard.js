@@ -1,13 +1,22 @@
 import React, { Component } from "react";
 import { Text, View, Animated, PanResponder, StyleSheet, Dimensions } from "react-native";
 
+// How to apply zIndex to animated element, is it even possible?
+
 export default class PlayingCard extends Component {
   state = {
-    active: false
+    active: false,
+    size: 0
   };
 
   _animatedValue = new Animated.ValueXY();
+  _scaleValue = new Animated.Value(0);
   _coords = { x: 0, y: 0 };
+
+  scale = this._scaleValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.2]
+  });
 
   componentDidMount() {
     this._animatedValue.addListener(coords => (this._coords = coords));
@@ -23,7 +32,6 @@ export default class PlayingCard extends Component {
     ]),
     onPanResponderGrant: () => {
       this._animatedValue.setOffset({ x: this._coords.x, y: this._coords.y });
-      this._relationalCoords = { x: this._coords.x, y: this._coords.y };
       this.setState({ active: true });
     },
 
@@ -31,24 +39,34 @@ export default class PlayingCard extends Component {
       const { height: deviceHeight, width: deviceWidth } = Dimensions.get("window");
       const validHeight = deviceHeight * (1 / 2);
       const validWidth = deviceWidth;
-      // console.log("=== valid X:", validWidth, "valid Y:", validHeight);
       this._animatedValue.flattenOffset();
-      // console.log("release X:", moveX, "release Y:", moveY);
       if (moveY < validHeight || moveX > validWidth) {
         console.log("PLAY CARD");
         Animated.stagger(200, [
-          Animated.decay(this._animatedValue, {
-            velocity: { x: vx, y: vy },
-            deceleration: 0.98
-          }),
-          Animated.spring(this._animatedValue, {
-            toValue: { x: 0, y: deviceHeight * -(1 / 2) },
-            friction: 4
-          })
+          Animated.parallel([
+            Animated.decay(this._animatedValue, {
+              velocity: { x: vx, y: vy },
+              deceleration: 0.98
+            }),
+            Animated.timing(this._scaleValue, {
+              toValue: 1
+            })
+          ]),
+          Animated.parallel([
+            Animated.spring(this._animatedValue, {
+              toValue: { x: 0, y: deviceHeight * -(1 / 2) },
+              friction: 4
+            }),
+            Animated.timing(this._scaleValue, {
+              toValue: 0
+            })
+          ])
         ]).start();
         this.props.playCard(this.props.id);
+        this.setState({ active: true });
       } else {
         console.log("HOLD CARD");
+        this.setState({ active: true });
         Animated.spring(this._animatedValue, {
           toValue: { x: 0, y: 0 },
           friction: 6
@@ -57,6 +75,7 @@ export default class PlayingCard extends Component {
       this.setState({ active: false });
     }
   });
+
   render() {
     const { width: deviceWidth } = Dimensions.get("window");
 
@@ -73,7 +92,9 @@ export default class PlayingCard extends Component {
             transform: [
               { translateX: this._animatedValue.x },
               { translateY: this._animatedValue.y },
-              { rotate: interpolatedRotation }
+              { rotate: interpolatedRotation },
+              { scaleX: this.scale },
+              { scaleY: this.scale }
             ]
           }
         ]}
