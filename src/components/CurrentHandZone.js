@@ -5,13 +5,20 @@ import PlayingCard from "./PlayingCard";
 export default class CurrentHandZone extends Component {
   state = {
     height: 0,
-    width: 0
+    width: 0,
+    playedCards: []
   };
 
   async componentDidMount() {
     await this.determineDimensions();
     console.log(this.state.height, this.state.width);
   }
+
+  playCard = id => {
+    const previousPlayedCards = this.state.playedCards.slice();
+    console.log(this.state.playedCards);
+    this.setState({ playedCards: [...previousPlayedCards, id] });
+  };
 
   determineDimensions = () => {
     const { height: deviceHeight, width: deviceWidth } = Dimensions.get("window");
@@ -25,10 +32,10 @@ export default class CurrentHandZone extends Component {
       <View
         style={[styles.handZone, { height: this.state.height, width: this.state.width }]}
       >
-        <PlayingCard />
-        <PlayingCard />
-        <PlayingCard />
-        <PlayingCard />
+        <PlayingCard id="1" playCard={this.playCard} />
+        <PlayingCard id="2" playCard={this.playCard} />
+        <PlayingCard id="3" playCard={this.playCard} />
+        <PlayingCard id="4" playCard={this.playCard} />
       </View>
     );
   }

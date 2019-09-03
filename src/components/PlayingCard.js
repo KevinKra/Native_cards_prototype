@@ -45,6 +45,7 @@ export default class PlayingCard extends Component {
             friction: 4
           })
         ]).start();
+        this.props.playCard(this.props.id);
       } else {
         console.log("HOLD CARD");
         Animated.spring(this._animatedValue, {
